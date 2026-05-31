@@ -1,0 +1,266 @@
+:root {
+    --bg-main: #1e1e24; 
+    --bg-panel: #272730;
+    --bg-card: #2f2f38;
+    
+    --accent-green: #52ffb8;
+    --accent-pink: #ff66aa;
+    
+    --color-300: #7eb6ff; 
+    --color-100: #52ffb8;
+    --color-50: #ffcc22;
+    --color-miss: #ff4d4d;
+    
+    --text-main: #ffffff;
+    --text-muted: #8b92a5;
+    --border-dashed: #4a4a5a;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background-color: var(--bg-main);
+    color: var(--text-main);
+    font-family: 'Inter', sans-serif;
+    padding: 2rem;
+    min-height: 100vh;
+}
+
+.dashboard-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.dashboard-header h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+}
+
+.dashboard-header p {
+    color: var(--text-muted);
+    font-weight: 300;
+    margin-top: 0.5rem;
+}
+
+.accent-pink {
+    color: var(--accent-pink);
+}
+
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: 1.5rem;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.panel {
+    background-color: var(--bg-panel);
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+.panel h2 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    color: var(--accent-green);
+    border-bottom: 2px solid var(--bg-card);
+    padding-bottom: 0.5rem;
+}
+
+.form-panel {
+    grid-column: span 4;
+}
+
+.chart-panel {
+    grid-column: span 8;
+}
+
+.scoreboard-panel {
+    grid-column: span 12;
+}
+
+.input-group {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 1rem;
+}
+
+.input-group label {
+    font-size: 0.85rem;
+    font-weight: 700;
+    margin-bottom: 0.4rem;
+    color: var(--text-muted);
+}
+
+.input-group input {
+    background-color: var(--bg-main);
+    border: 1px solid var(--bg-card);
+    color: var(--text-main);
+    padding: 0.75rem;
+    border-radius: 8px;
+    font-family: 'Inter', sans-serif;
+}
+
+.input-group input:focus {
+    outline: none;
+    border-color: var(--accent-pink);
+}
+
+.btn-submit {
+    width: 100%;
+    background-color: var(--accent-pink);
+    color: var(--text-main);
+    border: none;
+    padding: 0.75rem;
+    border-radius: 8px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: opacity 0.2s ease;
+}
+
+.btn-submit:hover {
+    opacity: 0.8;
+}
+
+.hits-container {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 1.5rem;
+    background-color: var(--bg-card);
+    padding: 1rem;
+    border-radius: 12px;
+}
+
+.hit-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.hit-label {
+    font-weight: 700;
+    font-size: 1.1rem;
+    text-shadow: 0 0 8px rgba(255,255,255,0.1);
+}
+
+.hit-300 { color: var(--color-300); }
+.hit-100 { color: var(--color-100); }
+.hit-50 { color: var(--color-50); }
+.hit-miss { color: var(--color-miss); }
+
+.hit-value {
+    font-size: 2rem;
+    font-weight: 300;
+}
+
+.canvas-container {
+    height: 250px;
+    position: relative;
+    width: 100%;
+}
+
+.table-container {
+    overflow-x: auto;
+}
+
+.scoreboard-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+}
+
+.scoreboard-table th {
+    background-color: var(--bg-card);
+    color: var(--text-muted);
+    font-weight: 700;
+    padding: 1rem;
+}
+
+.scoreboard-table td {
+    padding: 1rem;
+    border-bottom: 1px solid var(--bg-card);
+    font-weight: 300;
+}
+
+.scoreboard-table tbody tr:hover {
+    background-color: rgba(255, 255, 255, 0.02);
+}
+
+@media (max-width: 992px) {
+    .form-panel, .chart-panel {
+        grid-column: span 12;
+    }
+}
+
+.data-section {
+    margin-bottom: 1.5rem;
+}
+
+.source-info {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-bottom: 1rem;
+    line-height: 1.4;
+}
+
+.source-info strong {
+    color: var(--text-main);
+}
+
+
+.hidden-input {
+    display: none;
+}
+
+
+.upload-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    border: 2px dashed var(--border-dashed);
+    border-radius: 12px;
+    background-color: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-bottom: 1rem;
+}
+
+.upload-area:hover {
+    border-color: var(--text-muted);
+    background-color: rgba(255, 255, 255, 0.02);
+    color: var(--text-main);
+}
+
+.upload-icon {
+    margin-bottom: 0.5rem;
+    color: inherit; 
+}
+
+
+.btn-analyze {
+    background-color: var(--accent-pink);
+    border-radius: 8px;
+    font-size: 1rem;
+}
+
+.divider {
+    height: 1px;
+    background-color: var(--bg-card);
+    margin: 2rem 0;
+}
+
+
+.scoreboard-table td.hit-300 { color: var(--color-300); font-weight: 700; }
+.scoreboard-table td.hit-100 { color: var(--color-100); font-weight: 700; }
+.scoreboard-table td.hit-50 { color: var(--color-50); font-weight: 700; }
+.scoreboard-table td.hit-miss { color: var(--color-miss); font-weight: 700; }
