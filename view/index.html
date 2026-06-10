@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>osu! Performance Dashboard</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Columna Maestra: Lista de Mapas -->
+        <aside class="master-column">
+            <header class="master-header">
+                <h1>osu! <span class="accent-pink">Analytics</span></h1>
+                <p>PSP Dashboard</p>
+                <button id="scan-button" class="btn-scan">Escanear Replays</button>
+            </header>
+            <div class="map-list-container">
+                <div class="list-controls">
+                    <input type="text" id="search-input" placeholder="Buscar mapa...">
+                </div>
+                <ul id="map-list" class="map-list">
+                    <!-- Los mapas se insertarán aquí dinámicamente -->
+                </ul>
+            </div>
+        </aside>
+
+        <!-- Columna de Detalles: Leaderboard y Detalles de Jugada -->
+        <main class="detail-column">
+            <div id="leaderboard-view" class="leaderboard-container">
+                <h2 id="leaderboard-title">Selecciona un mapa</h2>
+                <div class="leaderboard-controls">
+                    <span>Ordenar por:</span>
+                    <button class="sort-btn active" data-sort="accuracy">Precisión</button>
+                    <button class="sort-btn" data-sort="combo">Max Combo</button>
+                </div>
+                <table class="leaderboard-table">
+                    <thead id="leaderboard-header" style="display: none;">
+                        <tr>
+                            <th>#</th>
+                            <th>Jugador</th>
+                            <th>Precisión</th>
+                            <th>Combo</th>
+                            <th>Fecha</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leaderboard-body">
+                        </tbody>
+                </table>
+            </div>
+
+            <section id="play-detail-view" class="play-detail-panel" style="display: none;">
+                <h2>Detalles de la Jugada</h2>
+                <div class="detail-grid">
+                    <div class="detail-item">
+                        <span class="detail-label">Mapa</span>
+                        <p id="detail-map-info" class="detail-value"></p>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Jugador</span>
+                        <p id="detail-player" class="detail-value"></p>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Fecha</span>
+                        <p id="detail-date" class="detail-value"></p>
+                    </div>
+                </div>
+                <div class="performance-details">
+                    <div class="chart-container">
+                        <canvas id="accuracy-chart"></canvas>
+                        <div id="chart-accuracy-text" class="chart-text"></div>
+                    </div>
+                    <div class="hits-distribution">
+                        <div class="hit-stat"><span class="hit-label hit-300">300</span><span id="detail-300" class="hit-value">0</span></div>
+                        <div class="hit-stat"><span class="hit-label hit-100">100</span><span id="detail-100" class="hit-value">0</span></div>
+                        <div class="hit-stat"><span class="hit-label hit-50">50</span><span id="detail-50" class="hit-value">0</span></div>
+                        <div class="hit-stat"><span class="hit-label hit-miss">Miss</span><span id="detail-miss" class="hit-value">0</span></div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // Estado de la aplicación
+    let datosAgrupados = {};
+    let mapaSeleccionado = null;
+    let jugadaSeleccionada = null;
+    let criterioOrden = 'accuracy';
+
+    // Elementos del DOM
+    const mapList = document.getElementById('map-list');
+    const leaderboardTitle = document.getElementById('leaderboard-title');
+    const leaderboardHeader = document.getElementById('leaderboard-header');
+    const leaderboardBody = document.getElementById('leaderboard-body');
+    const playDetailView = document.getElementById('play-detail-view');
+    const scanButton = document.getElementById('scan-button');
+    const searchInput = document.getElementById('search-input');
+
+    // Gráfico de Precisión
+    const ctx = document.getElementById('accuracy-chart').getContext('2d');
+    const accuracyChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Perfect', 'Good', 'Meh', 'Miss', 'Restante'],
+            datasets: [{
+                data: [0, 0, 0, 0, 1],
+                backgroundColor: ['#52ffb8', '#88b300', '#ffcc22', '#ff4d4d', '#2f2f38'],
+                borderWidth: 0,
+                hoverOffset: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false }, tooltip: { enabled: false } },
+            cutout: '75%'
+        }
+    });
+
+    // --- LÓGICA PRINCIPAL ---
+
+    async function cargarDatosReplays() {
+        try {
+            const response = await fetch('/api/replays');
+            const rawData = await response.json();
+            
+            datosAgrupados = {}; 
+            for (const hash in rawData) {
+                const mapInfo = rawData[hash][0]?.Mapa_Info || 'Mapa Desconocido';
+                if (!datosAgrupados[mapInfo]) {
+                    datosAgrupados[mapInfo] = [];
+                }
+                rawData[hash].forEach(replay => {
+                    replay.Stats = replay.Stats || {};
+                    replay.Stats.Precision = replay.Stats.Precision || 0;
+                    // CORRECCIÓN: Ajustado a Max_Combo
+                    replay.Stats.Max_Combo = replay.Stats.Max_Combo || 0;
+                    // CORRECCIÓN: Ajustado a Misses con M mayúscula
+                    replay.Stats.Misses = replay.Stats.Misses || 0;
+                    datosAgrupados[mapInfo].push(replay);
+                });
+            }
+            renderizarMapas();
+        } catch (error) {
+            console.error('Error cargando los datos desde la API:', error);
+        }
+    }
+
+    function renderizarMapas(filtro = '') {
+        mapList.innerHTML = '';
+        const mapasFiltrados = Object.keys(datosAgrupados).filter(mapInfo => 
+            mapInfo.toLowerCase().includes(filtro.toLowerCase())
+        );
+        
+        mapasFiltrados.sort().forEach(mapInfo => {
+            const li = document.createElement('li');
+            li.className = 'map-item';
+            li.dataset.mapInfo = mapInfo;
+            
+            const playsCount = datosAgrupados[mapInfo].length;
+            const bestPlay = datosAgrupados[mapInfo].sort((a, b) => b.Stats.Precision - a.Stats.Precision)[0];
+
+            li.innerHTML = `
+                <div class="map-item-content">
+                    <span class="map-title">${mapInfo}</span>
+                    <span class="map-plays">${playsCount} jugada(s)</span>
+                </div>
+                <span class="map-best-score" style="color:var(--accent-green)">${bestPlay.Stats.Precision.toFixed(2)}%</span>
+            `;
+            li.addEventListener('click', () => {
+                mapaSeleccionado = mapInfo;
+                document.querySelectorAll('.map-item').forEach(item => item.classList.remove('active'));
+                li.classList.add('active');
+                renderizarLeaderboard();
+            });
+            mapList.appendChild(li);
+        });
+    }
+
+    function renderizarLeaderboard() {
+        if (!mapaSeleccionado) return;
+
+        leaderboardTitle.textContent = mapaSeleccionado;
+        leaderboardHeader.style.display = '';
+        leaderboardBody.innerHTML = '';
+        playDetailView.style.display = 'none';
+
+        const jugadas = [...datosAgrupados[mapaSeleccionado]];
+
+        jugadas.sort((a, b) => {
+            switch (criterioOrden) {
+                case 'combo':
+                    // CORRECCIÓN: Ajustado a Max_Combo
+                    return b.Stats.Max_Combo - a.Stats.Max_Combo;
+                case 'accuracy':
+                default:
+                    return b.Stats.Precision - a.Stats.Precision;
+            }
+        });
+
+        jugadas.forEach((replay, index) => {
+            const tr = document.createElement('tr');
+            tr.className = 'leaderboard-row';
+            
+            // CORRECCIÓN: Se actualizan las llaves Jugador, Max_Combo, date y time
+            tr.innerHTML = `
+                <td>#${index + 1}</td>
+                <td>${replay.Jugador || 'Desconocido'}</td>
+                <td style="color:var(--accent-green)">${replay.Stats.Precision.toFixed(2)}%</td>
+                <td>${replay.Stats.Max_Combo}x</td>
+                <td>${replay.date} ${replay.time}</td>
+            `;
+            tr.addEventListener('click', () => {
+                jugadaSeleccionada = replay;
+                document.querySelectorAll('.leaderboard-row').forEach(row => row.classList.remove('active'));
+                tr.classList.add('active');
+                renderizarDetallesJugada();
+            });
+            leaderboardBody.appendChild(tr);
+        });
+    }
+
+    function renderizarDetallesJugada() {
+        if (!jugadaSeleccionada) return;
+
+        playDetailView.style.display = 'block';
+        const stats = jugadaSeleccionada.Stats;
+        
+        // CORRECCIÓN: TotalHits usa Misses
+        const totalHits = stats['300'] + stats['100'] + stats['50'] + stats.Misses;
+
+        // CORRECCIÓN: Textos actualizados con Jugador, date y time
+        document.getElementById('detail-map-info').textContent = `${mapaSeleccionado} [${jugadaSeleccionada.Dificultad}]`;
+        document.getElementById('detail-player').textContent = jugadaSeleccionada.Jugador || 'Desconocido';
+        document.getElementById('detail-date').textContent = `${jugadaSeleccionada.date} ${jugadaSeleccionada.time}`;
+        document.getElementById('detail-300').textContent = stats['300'];
+        document.getElementById('detail-100').textContent = stats['100'];
+        document.getElementById('detail-50').textContent = stats['50'];
+        document.getElementById('detail-miss').textContent = stats.Misses;
+        
+        // Actualizar gráfico
+        document.getElementById('chart-accuracy-text').textContent = `${stats.Precision.toFixed(2)}%`;
+        accuracyChart.data.datasets[0].data = [
+            stats['300'], 
+            stats['100'], 
+            stats['50'], 
+            stats.Misses,
+            0 
+        ];
+        const remaining = Math.max(0, totalHits - (stats['300'] + stats['100'] + stats['50'] + stats.Misses));
+        accuracyChart.data.datasets[0].data[4] = remaining;
+        accuracyChart.update();
+    }
+
+    // --- EVENT LISTENERS ---
+
+    scanButton.addEventListener('click', async () => {
+        const textoOriginal = scanButton.textContent;
+        scanButton.textContent = "Escaneando...";
+        scanButton.disabled = true;
+        try {
+            const response = await fetch('/api/scan-default', { method: 'POST' });
+            const result = await response.json();
+            if (response.ok) {
+                await cargarDatosReplays();
+            } else {
+                alert("Error en el servidor: " + result.message);
+            }
+        } catch (error) {
+            console.error("Error de conexión:", error);
+            alert("No se pudo conectar con el servidor local.");
+        } finally {
+            scanButton.textContent = textoOriginal;
+            scanButton.disabled = false;
+        }
+    });
+
+    searchInput.addEventListener('input', (e) => {
+        renderizarMapas(e.target.value);
+    });
+
+    document.querySelectorAll('.sort-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            criterioOrden = btn.dataset.sort;
+            document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            renderizarLeaderboard();
+        });
+    });
+
+    // Carga inicial
+    cargarDatosReplays();
+});
+</script>
+</body>
+</html>

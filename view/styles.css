@@ -1,0 +1,293 @@
+:root {
+    --bg-main: #1a1a22;
+    --bg-panel: #23232c;
+    --bg-card: #2c2c38;
+    --accent-pink: #ff66aa;
+    --accent-green: #52ffb8;
+    --text-main: #e0e0e6;
+    --text-muted: #8b92a5;
+    --border-color: #3a3a4a;
+    --color-300: #7eb6ff;
+    --color-100: #52ffb8;
+    --color-50: #ffcc22;
+    --color-miss: #ff4d4d;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background-color: var(--bg-main);
+    color: var(--text-main);
+    font-family: 'Inter', sans-serif;
+    height: 100vh;
+    overflow: hidden;
+}
+
+.accent-pink { color: var(--accent-pink); }
+.accent-green { color: var(--accent-green); }
+
+.container {
+    display: flex;
+    height: 100%;
+}
+
+/* --- Columna Maestra (Izquierda) --- */
+.master-column {
+    width: 350px;
+    background-color: var(--bg-panel);
+    border-right: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+}
+
+.master-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.master-header h1 {
+    font-size: 1.8rem;
+    font-weight: 700;
+}
+
+.master-header p {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+}
+
+.btn-scan {
+    width: 100%;
+    padding: 0.75rem;
+    background-color: var(--accent-pink);
+    color: var(--bg-main);
+    border: none;
+    border-radius: 8px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.btn-scan:hover {
+    background-color: #ff88c2;
+}
+
+.btn-scan:disabled {
+    background-color: var(--text-muted);
+    cursor: not-allowed;
+}
+
+.map-list-container {
+    flex-grow: 1;
+    overflow-y: auto;
+}
+
+.list-controls {
+    padding: 1rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+#search-input {
+    width: 100%;
+    padding: 0.75rem;
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    color: var(--text-main);
+}
+
+.map-list {
+    list-style: none;
+}
+
+.map-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    border-bottom: 1px solid var(--border-color);
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.map-item:hover {
+    background-color: var(--bg-card);
+}
+
+.map-item.active {
+    background-color: var(--accent-pink);
+    color: var(--bg-main);
+}
+
+.map-item.active .map-plays,
+.map-item.active .map-best-score {
+    color: var(--bg-main);
+}
+
+.map-title {
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 200px;
+}
+
+.map-plays {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+.map-best-score {
+    font-weight: 700;
+    color: var(--accent-green);
+}
+
+/* --- Columna de Detalles (Derecha) --- */
+.detail-column {
+    flex-grow: 1;
+    padding: 2rem;
+    overflow-y: auto;
+}
+
+.leaderboard-container h2 {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.leaderboard-controls {
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.leaderboard-controls .sort-btn {
+    background: none;
+    border: 1px solid var(--border-color);
+    color: var(--text-muted);
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.leaderboard-controls .sort-btn.active {
+    background-color: var(--accent-pink);
+    color: var(--bg-main);
+    border-color: var(--accent-pink);
+}
+
+.leaderboard-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.leaderboard-table th, .leaderboard-table td {
+    padding: 0.75rem 1rem;
+    text-align: left;
+}
+
+.leaderboard-table th {
+    color: var(--text-muted);
+    font-weight: 600;
+    border-bottom: 2px solid var(--border-color);
+}
+
+.leaderboard-row {
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.leaderboard-row:hover {
+    background-color: var(--bg-card);
+}
+
+.leaderboard-row.active {
+    background-color: var(--bg-card);
+    box-shadow: inset 3px 0 0 var(--accent-pink);
+}
+
+/* --- Panel de Detalles de Jugada --- */
+.play-detail-panel {
+    margin-top: 2rem;
+    background-color: var(--bg-panel);
+    padding: 1.5rem;
+    border-radius: 12px;
+}
+
+.play-detail-panel h2 {
+    font-size: 1.2rem;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 0.5rem;
+}
+
+.detail-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.detail-label {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-bottom: 0.25rem;
+}
+
+.detail-value {
+    font-weight: 600;
+}
+
+.performance-details {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+}
+
+.chart-container {
+    width: 150px;
+    height: 150px;
+    position: relative;
+}
+
+.chart-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--accent-green);
+}
+
+.hits-distribution {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+}
+
+.hit-stat {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.hit-label {
+    font-weight: 700;
+    font-size: 1.1rem;
+}
+
+.hit-300 { color: var(--color-300); }
+.hit-100 { color: var(--color-100); }
+.hit-50 { color: var(--color-50); }
+.hit-miss { color: var(--color-miss); }
+
+.hit-value {
+    font-size: 1.5rem;
+    font-weight: 300;
+}
